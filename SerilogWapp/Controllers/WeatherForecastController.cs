@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Serilog;
 
 namespace SerilogWapp.Controllers
 {
@@ -10,6 +11,8 @@ namespace SerilogWapp.Controllers
     [Route("[controller]")]
     public class WeatherForecastController : ControllerBase
     {
+        readonly IDiagnosticContext _diagnosticContext;
+
         private static readonly string[] Summaries = new[]
         {
             "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
@@ -17,9 +20,10 @@ namespace SerilogWapp.Controllers
 
         private readonly ILogger<WeatherForecastController> _logger;
 
-        public WeatherForecastController(ILogger<WeatherForecastController> logger)
+        public WeatherForecastController(ILogger<WeatherForecastController> logger, IDiagnosticContext diagnosticContext)
         {
             _logger = logger;
+            _diagnosticContext = diagnosticContext ?? throw new ArgumentNullException(nameof(diagnosticContext));
         }
 
         [HttpGet]
@@ -34,6 +38,7 @@ namespace SerilogWapp.Controllers
                     Summary = Summaries[rng.Next(Summaries.Length)]
                 });
 
+            _diagnosticContext.Set("weatherForecastData temperature", "test");
             _logger.LogInformation("Got weather forecast data: {@WeatherForecast}", weatherForecastData);
 
             return weatherForecastData.ToArray();

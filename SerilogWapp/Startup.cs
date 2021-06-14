@@ -45,7 +45,7 @@ namespace SerilogWapp
             app.UseSerilogRequestLogging(options =>
             {
                 // Customize the message template
-                options.MessageTemplate = "Handled {RequestPath}";
+                options.MessageTemplate = "Handled {RequestPath} on {RequestHost} time {Elapsed}";
 
                 // Emit debug-level events instead of the defaults
                 options.GetLevel = (httpContext, elapsed, ex) => LogEventLevel.Debug;
