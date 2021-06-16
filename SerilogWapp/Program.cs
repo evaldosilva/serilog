@@ -2,6 +2,7 @@ using System;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
 using Serilog;
+using Serilog.Exceptions;
 
 namespace SerilogWapp
 {
@@ -16,6 +17,7 @@ namespace SerilogWapp
                     .MinimumLevel.Override("Microsoft.AspNetCore", Serilog.Events.LogEventLevel.Warning)
                     .Enrich.WithMachineName()
                     .Enrich.WithEnvironmentUserName()
+                    .Enrich.WithExceptionDetails()
                     .WriteTo.File("SerilogWappLog.txt",
                         outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj} Properties: {Properties} {Exception}{NewLine}", // output format
                         rollingInterval: RollingInterval.Day, // Create files per day

@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
 using Serilog.Events;
+using Serilog.Exceptions;
 
 namespace SerilogWapp
 {
@@ -55,6 +56,7 @@ namespace SerilogWapp
                     .MinimumLevel.Override("Microsoft", Serilog.Events.LogEventLevel.Information)
                     .MinimumLevel.Override("Microsoft.AspNetCore", Serilog.Events.LogEventLevel.Warning)
                     .Enrich.FromLogContext()
+                    .Enrich.WithExceptionDetails()
                     .Enrich.WithProperty("Env Filename", env.EnvironmentName)
                     .Enrich.WithProperty("Env Name", Configuration.GetSection("EnvironmentSettings").GetValue<string>("AppEnvironment"))
                     .Enrich.WithProperty("Assembly Name", assemblyData.Name)
