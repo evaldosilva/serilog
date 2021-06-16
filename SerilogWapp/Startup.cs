@@ -1,3 +1,4 @@
+using System.Reflection;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -31,6 +32,8 @@ namespace SerilogWapp
                 app.UseDeveloperExceptionPage();
             }
 
+            ConfigureLogger(app, env);
+
             app.UseHttpsRedirection();
 
             app.UseRouting();
@@ -41,12 +44,32 @@ namespace SerilogWapp
             {
                 endpoints.MapControllers();
             });
+        }
+
+        private void ConfigureLogger(IApplicationBuilder app, IWebHostEnvironment env)
+        {
+            var assemblyData = Assembly.GetExecutingAssembly().GetName();
+
+            Log.Logger = new LoggerConfiguration()
+                    .MinimumLevel.Debug()
+                    .MinimumLevel.Override("Microsoft", Serilog.Events.LogEventLevel.Information)
+                    .MinimumLevel.Override("Microsoft.AspNetCore", Serilog.Events.LogEventLevel.Warning)
+                    .Enrich.FromLogContext()
+                    .Enrich.WithProperty("Env Filename", env.EnvironmentName)
+                    .Enrich.WithProperty("Env Name", Configuration.GetSection("EnvironmentSettings").GetValue<string>("AppEnvironment"))
+                    .Enrich.WithProperty("Assembly Name", assemblyData.Name)
+                    .Enrich.WithProperty("Assembly Version", assemblyData.Version)
+                    .Enrich.WithMachineName()
+                    .Enrich.WithEnvironmentUserName()
+                    .WriteTo.File($"SerilogWapp-{env.EnvironmentName}-Log-.txt", // Write a different log name depending o the environment
+                        outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj} Properties: {Properties} {Exception}{NewLine}", // output format
+                        rollingInterval: RollingInterval.Day, // Create files per day
+                        retainedFileCountLimit: 7, // Keep just the last 6 files
+                        rollOnFileSizeLimit: true) // If file size exceeds their size, create a new file for the same day;
+                    .CreateLogger();
 
             app.UseSerilogRequestLogging(options =>
             {
-                // Customize the message template
-                options.MessageTemplate = "Handled {RequestPath} on {RequestHost} time {Elapsed}";
-
                 // Emit debug-level events instead of the defaults
                 options.GetLevel = (httpContext, elapsed, ex) => LogEventLevel.Debug;
 

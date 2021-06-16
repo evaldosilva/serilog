@@ -9,13 +9,19 @@ namespace SerilogWapp
     {
         public static void Main(string[] args)
         {
+            // Log just to get startup errors. The 'most used' log configuration is located at the Startup class.
             Log.Logger = new LoggerConfiguration()
-                .MinimumLevel.Override("Microsoft", Serilog.Events.LogEventLevel.Information)
-                .MinimumLevel.Override("Microsoft.AspNetCore", Serilog.Events.LogEventLevel.Warning)
-                .Enrich.FromLogContext()
-                .WriteTo.Console()
-                .CreateBootstrapLogger();
-
+                    .MinimumLevel.Debug()
+                    .MinimumLevel.Override("Microsoft", Serilog.Events.LogEventLevel.Information)
+                    .MinimumLevel.Override("Microsoft.AspNetCore", Serilog.Events.LogEventLevel.Warning)
+                    .Enrich.WithMachineName()
+                    .Enrich.WithEnvironmentUserName()
+                    .WriteTo.File("SerilogWappLog.txt",
+                        outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj} Properties: {Properties} {Exception}{NewLine}", // output format
+                        rollingInterval: RollingInterval.Day, // Create files per day
+                        retainedFileCountLimit: 6, // Keep just the last 6 files
+                        rollOnFileSizeLimit: true) // If file size exceeds their size, create a new file for the same day;
+                    .CreateBootstrapLogger();
             try
             {
                 Log.Information("Starting web host");
@@ -33,18 +39,7 @@ namespace SerilogWapp
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
-                .UseSerilog((context, services, configuration) => configuration
-                    .MinimumLevel.Override("Microsoft", Serilog.Events.LogEventLevel.Information)
-                    .MinimumLevel.Override("Microsoft.AspNetCore", Serilog.Events.LogEventLevel.Warning)
-                    .ReadFrom.Configuration(context.Configuration)
-                    .ReadFrom.Services(services)
-                    .Enrich.FromLogContext()
-                    .WriteTo.Console()
-                    .WriteTo.File("SerilogWappLog.txt",
-                        outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{Exception}", // output format
-                        rollingInterval: RollingInterval.Day, // Create files per day
-                        retainedFileCountLimit: 6, // Keep just the last 6 files
-                        rollOnFileSizeLimit: true)) // If file size exceeds their size, create a new file for the same day
+                .UseSerilog()
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.UseStartup<Startup>();

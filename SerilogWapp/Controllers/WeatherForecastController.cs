@@ -38,7 +38,7 @@ namespace SerilogWapp.Controllers
                     Summary = Summaries[rng.Next(Summaries.Length)]
                 });
 
-            _diagnosticContext.Set("weatherForecastData temperature", "test");
+            _diagnosticContext.Set("WeatherForecast sample data", "Specific Data!");
             _logger.LogInformation("Got weather forecast data: {@WeatherForecast}", weatherForecastData);
 
             return weatherForecastData.ToArray();

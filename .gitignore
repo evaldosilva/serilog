@@ -7,7 +7,7 @@
 *.user
 *.userosscache
 *.sln.docstates
-SerilogWappLog*.txt
+SerilogWapp*Log*.txt
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
